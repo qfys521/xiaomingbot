@@ -7,17 +7,10 @@ import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.event.XiaoMingStopEvent;
 import cn.chuanwise.xiaoming.exception.XiaoMingRuntimeException;
-import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.user.ConsoleXiaoMingUser;
 import cn.chuanwise.xiaoming.user.ConsoleXiaoMingUserImpl;
 import net.mamoe.mirai.Bot;
-import net.mamoe.mirai.contact.Friend;
-import net.mamoe.mirai.contact.Group;
-import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.event.EventChannel;
-import net.mamoe.mirai.event.events.BotEvent;
-import net.mamoe.mirai.utils.BotConfiguration;
-import net.mamoe.mirai.utils.MiraiLogger;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
@@ -41,17 +34,10 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
     private ConsoleXiaoMingUser consoleUser;
     private volatile boolean running = false;
 
-    /**
-     * @param consoleQq 机器人标识 QQ 号
-     */
     public ConsoleBotImpl(long consoleQq) {
         super(createFakeBot(consoleQq));
     }
 
-    /**
-     * 使用 Java 动态代理创建一个假 Mirai Bot，
-     * 满足 XiaoMingBotImpl 的构造函数要求。
-     */
     @SuppressWarnings("unchecked")
     private static Bot createFakeBot(long qq) {
         return (Bot) Proxy.newProxyInstance(
@@ -69,23 +55,22 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
                             case "getFriend":   return null;
                             case "getGroup":    return null;
                             case "getEventChannel":
-                                // 返回一个假的 EventChannel
                                 return Proxy.newProxyInstance(
                                         EventChannel.class.getClassLoader(),
                                         new Class<?>[]{EventChannel.class},
                                         (p, m, a) -> null);
                             case "getAsFriend": return null;
-                            case "login":       return null; // 不登录
-                            case "close":       return null; // 不关闭
+                            case "login":       return null;
+                            case "close":       return null;
                             case "getLogger":   return null;
                             case "getBotConfiguration": return null;
                             case "toString":    return "ConsoleBot(" + qq + ")";
                             case "hashCode":    return Long.hashCode(qq);
-                            case "equals":      return args != null && args.length > 0 &&
-                                                        args[0] instanceof Bot &&
-                                                        ((Bot) args[0]).getId() == qq;
+                            case "equals":
+                                return args != null && args.length > 0
+                                        && args[0] instanceof Bot
+                                        && ((Bot) args[0]).getId() == qq;
                             default:
-                                // 对其他方法返回 null 或默认值
                                 Class<?> returnType = method.getReturnType();
                                 if (returnType == boolean.class) return false;
                                 if (returnType == int.class)    return 0;
@@ -103,15 +88,10 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
     public void start() {
         setStatus(Status.ENABLING);
         printConsoleBanner();
-
         getLogger().info("正在以控制台模式启动小明机器人……");
-        getLogger().info("控制台模式：无需 QQ 登录，直接在终端中交互");
-
         initConsole();
-
         setStatus(Status.ENABLED);
-        getLogger().info("控制台小明启动完成！");
-        System.out.println("输入 'exit' 退出，输入 'help' 查看帮助");
+        getLogger().info("控制台小明启动完成！输入 'help' 查看帮助，'exit' 退出");
     }
 
     @Override
@@ -119,9 +99,7 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
         if (isDisabled()) {
             throw new XiaoMingRuntimeException("can not stop a stopped xiaoming bot");
         }
-
         running = false;
-
         XiaoMingStopEvent event = new XiaoMingStopEvent();
         getEventManager().callEvent(event);
         if (event.isCancelled()) return;
@@ -132,7 +110,6 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
         getFileSaver().readyToSave(getStatistician());
 
         setStatus(Status.DISABLING);
-
         getLogger().info("正在卸载所有插件");
         try {
             getPluginManager().getPluginHandlers().forEach(h -> getPluginManager().unloadPlugin(h));
@@ -143,7 +120,6 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
         getLogger().info("正在关闭线程池");
         getStatistician().onClose();
         getScheduler().stopNow();
-
         if (scanner != null) scanner.close();
 
         setStatus(Status.DISABLED);
@@ -155,7 +131,6 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
     public void enterRepl() {
         running = true;
         scanner = new Scanner(System.in, StandardCharsets.UTF_8);
-
         System.out.println();
         System.out.println("=== 控制台小明 REPL ===");
         System.out.print("> ");
@@ -165,14 +140,13 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
             if (input.isEmpty()) { System.out.print("> "); continue; }
 
             switch (input.toLowerCase()) {
-                case "exit":
-                case "quit":
+                case "exit": case "quit":
                     System.out.println("正在关闭……");
                     running = false;
                     break;
-                case "help":  showHelp();  break;
+                case "help":    showHelp();    break;
                 case "plugins": showPlugins(); break;
-                case "status": showStatus(); break;
+                case "status":  showStatus();  break;
                 default:
                     handleInput(input);
                     break;
@@ -182,26 +156,43 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
         stop();
     }
 
+    /**
+     * 处理控制台输入。
+     * 直接构造 Message 并通过 ReceptionTask 触发交互器链，
+     * 绕过 ReceptionistManagerImpl 中对 ConsoleXiaoMingUser 的 instanceof 跳过逻辑。
+     */
     private void handleInput(String content) {
         try {
             if (consoleUser == null) {
                 System.out.println("[系统] 控制台用户未就绪");
                 return;
             }
-            ConsoleMessage msg = new ConsoleMessage(this, content, System.currentTimeMillis());
-            MessageEvent event = new MessageEvent(consoleUser, msg);
-            event.setXiaoMingBot(this);
+
+            // 构造消息
+            ConsoleMessage message = new ConsoleMessage(this, content, System.currentTimeMillis());
+
+            // 通知联系人管理器
+            MessageEvent event = new MessageEvent(consoleUser, message);
             getContactManager().onNextMessageEvent(event);
-            consoleUser.onNextMessage(msg);
+
+            // 检查是否已有交互上下文（如在等待用户输入的多轮交互中）
+            if (consoleUser.getInteractorContext() != null) {
+                getStatistician().increaseEffectiveCallNumber();
+                consoleUser.onNextMessage(message);
+            } else {
+                // 启动新的接待任务，直接走交互器链
+                getStatistician().increaseCallNumber();
+                getScheduler().run(new ConsoleReceptionTask(consoleUser, message));
+            }
         } catch (Exception e) {
             System.err.println("[错误] " + e.getMessage());
+            getLogger().error("处理控制台消息时出错", e);
         }
     }
 
     // ==================== 初始化 ====================
 
     private void initConsole() {
-        // 创建必要目录（替代原 XiaoMingBotImpl.makeDirectories()）
         File workingDir = getWorkingDirectory();
         setConfigurationDirectory(new File(workingDir, "configurations"));
         setReportDirectory(new File(workingDir, "reports"));
@@ -210,11 +201,8 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
         setResourceDirectory(new File(workingDir, "resources"));
 
         for (File dir : new File[]{
-                getConfigurationDirectory(),
-                getPluginDirectory(),
-                getResourceDirectory(),
-                getReportDirectory(),
-                getLogDirectory()
+                getConfigurationDirectory(), getPluginDirectory(),
+                getResourceDirectory(), getReportDirectory(), getLogDirectory()
         }) {
             if (!dir.isDirectory() && !dir.mkdirs()) {
                 throw new cn.chuanwise.xiaoming.exception.XiaoMingInitializeException(
@@ -224,18 +212,21 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
 
         load();
 
-        // 设置控制台用户
         ConsoleContact contact = new ConsoleContactImpl(this, getCode());
         consoleUser = new ConsoleXiaoMingUserImpl(contact);
         consoleUser.setXiaoMingBot(this);
         setConsoleXiaoMingUser(consoleUser);
 
-        if (getReceptionistManager() != null) {
-            Receptionist r = getReceptionistManager().getReceptionist(getCode());
-            if (r != null) consoleUser.setReceptionist(r);
-        }
+        registerCoreModules();
 
-        // 注册内核交互器和监听器（原 registerCoreModules()）
+        try {
+            getPluginManager().initialize();
+        } catch (Throwable t) {
+            getLogger().error("加载插件时出现异常", t);
+        }
+    }
+
+    private void registerCoreModules() {
         cn.chuanwise.xiaoming.interactor.InteractorManager im = getInteractorManager();
         im.registerInteractors(new cn.chuanwise.xiaoming.interactor.interactors.PluginInteractors(), null);
         im.registerInteractors(new cn.chuanwise.xiaoming.interactor.interactors.ReceptionistInteractors(), null);
@@ -246,15 +237,8 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
         im.registerInteractors(new cn.chuanwise.xiaoming.interactor.interactors.GroupInformationInteractors(), null);
         im.registerInteractors(new cn.chuanwise.xiaoming.interactor.interactors.PermissionInteractors(), null);
 
-        cn.chuanwise.xiaoming.listener.EventManager em = getEventManager();
-        em.registerListeners(getReceptionistManager(), null);
-        em.registerListeners(new cn.chuanwise.xiaoming.listener.CoreListeners(), null);
-
-        try {
-            getPluginManager().initialize();
-        } catch (Throwable t) {
-            getLogger().error("加载插件时出现异常", t);
-        }
+        getEventManager().registerListeners(getReceptionistManager(), null);
+        getEventManager().registerListeners(new cn.chuanwise.xiaoming.listener.CoreListeners(), null);
     }
 
     // ==================== 显示 ====================
@@ -279,7 +263,7 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
         System.out.println("┌──────────────────────────────────────────┐");
         System.out.println("│       控制台小明 v" + XiaoMingBot.VERSION + "                    │");
         System.out.println("├──────────────────────────────────────────┤");
-        System.out.println("│  输入文本  → 与小明对话                  │");
+        System.out.println("│  输入文本  → 与小明对话 / 触发插件命令   │");
         System.out.println("│  help      → 显示帮助                    │");
         System.out.println("│  plugins   → 列出插件                    │");
         System.out.println("│  status    → 运行状态                    │");
@@ -304,10 +288,10 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
 
     private void showStatus() {
         System.out.println();
-        System.out.println("  小明版本: " + XiaoMingBot.VERSION);
-        System.out.println("  运行模式: Console");
+        System.out.println("  小明版本:  " + XiaoMingBot.VERSION);
+        System.out.println("  运行模式:  Console");
         System.out.println("  机器人 ID: " + getCodeString());
-        System.out.println("  插件数量: " + getPluginManager().getPluginHandlers().size());
+        System.out.println("  已加载插件: " + getPluginManager().getPluginHandlers().size());
         System.out.println();
     }
 }
