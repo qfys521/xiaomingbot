@@ -201,15 +201,18 @@ public class ConsoleBotImpl extends XiaoMingBotImpl {
     // ==================== 初始化 ====================
 
     private void initConsole() {
-        // 创建必要目录（原 XiaoMingBotImpl.makeDirectories()）
+        // 创建必要目录（替代原 XiaoMingBotImpl.makeDirectories()）
         File workingDir = getWorkingDirectory();
         setConfigurationDirectory(new File(workingDir, "configurations"));
         setReportDirectory(new File(workingDir, "reports"));
         setLogDirectory(new File(workingDir, "logs"));
+        setPluginDirectory(new File(workingDir, "plugins"));
+        setResourceDirectory(new File(workingDir, "resources"));
+
         for (File dir : new File[]{
                 getConfigurationDirectory(),
-                new File(workingDir, "plugins"),
-                new File(workingDir, "resources"),
+                getPluginDirectory(),
+                getResourceDirectory(),
                 getReportDirectory(),
                 getLogDirectory()
         }) {
