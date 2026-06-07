@@ -1,0 +1,7 @@
+dependencies {
+    implementation 'org.jline:jline-parent:3.20.0'
+    implementation 'org.fusesource.jansi:jansi:2.4.0'
+    implementation 'org.apache.commons:commons-collections4:4.4'
+    implementation files('../libs/WiseToolkit-4.0.1-SNAPSHOT.jar')
+    compileOnly 'net.mamoe:mirai-core-api-jvm:2.16.0'
+}

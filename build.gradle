@@ -1,61 +1,39 @@
-plugins{
-    id 'java'
-    id 'java-library'
-    id 'maven-publish'
-    id 'com.gradleup.shadow' version '9.3.0'
-}
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'java-library'
 
-group 'cn.chuanwise.xiaoming'
-version '4.9.20251228-all-last'
+    group 'cn.chuanwise.xiaoming'
+    version '4.9.20251228-all-last'
 
-compileJava {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-
-repositories {
-    mavenCentral()
-    google()
-    maven {
-        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+    compileJava {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        options.compilerArgs += ['-Xlint:-options']
     }
-}
 
-dependencies {
-
-    implementation 'org.jline:jline-parent:3.20.0'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.14.2'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
-    implementation 'org.projectlombok:lombok:1.18.32'
-    annotationProcessor 'org.projectlombok:lombok:1.18.32'
-    implementation 'org.fusesource.jansi:jansi:2.4.0'
-    implementation 'org.apache.commons:commons-collections4:4.4'
-    implementation 'org.slf4j:slf4j-log4j12:2.0.7'
-    implementation "top.mrxiaom.mirai:overflow-core:1.0.8.669-9a9b69f-SNAPSHOT"
-    implementation files('libs/WiseToolkit-4.0.1-SNAPSHOT.jar')//椽子工具库
-    implementation 'net.mamoe:mirai-core-api-jvm:2.16.0'
-    testImplementation platform('org.junit:junit-bom:5.9.1')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-}
-
-test {
-    useJUnitPlatform()
-}
-
-
-shadowJar {
-    manifest {
-        attributes(
-                'Build-JDK-Version': '17',
-                'Build-Version': '4.9.20251228-all-last',
-                'group': 'cn.chuanwise.xiaoming',
-                'build-by': 'qfys521'
-        )
+    repositories {
+        mavenCentral()
+        google()
+        maven {
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+        }
     }
-    // 将 build.gradle 打入到 jar 中, 方便查看依赖包版本
-    from("./") {
-        include 'build.gradle'
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.18.38'
+        annotationProcessor 'org.projectlombok:lombok:1.18.38'
+
+        implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
+        implementation 'com.fasterxml.jackson.core:jackson-annotations:2.14.2'
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+
+        implementation 'org.slf4j:slf4j-log4j12:2.0.7'
+
+        testImplementation platform('org.junit:junit-bom:5.9.1')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+    }
+
+    test {
+        useJUnitPlatform()
     }
 }

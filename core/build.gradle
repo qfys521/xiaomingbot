@@ -1,0 +1,6 @@
+dependencies {
+    api project(':api')
+    implementation 'org.apache.commons:commons-collections4:4.4'
+    implementation files('../libs/WiseToolkit-4.0.1-SNAPSHOT.jar')
+    compileOnly 'net.mamoe:mirai-core-api-jvm:2.16.0'
+}

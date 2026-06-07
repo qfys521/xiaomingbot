@@ -1,1 +1,6 @@
 rootProject.name = 'xiaomingbot'
+
+include 'api'
+include 'core'
+include 'compat'
+include 'bot-mirai'
