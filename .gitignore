@@ -41,5 +41,6 @@ bin/
 .DS_Store
 /.idea/modules.xml
 .idea/
-RemoveFile.shsrc.orig/
+RemoveFile.sh
+src.orig/
 .claude/
