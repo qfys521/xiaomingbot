@@ -13,7 +13,7 @@ shadowJar {
     manifest {
         attributes(
                 'Build-JDK-Version': '17',
-                'Build-Version': '4.9.20251228-all-last',
+                'Build-Version': '5.0.0',
                 'group': 'cn.chuanwise.xiaoming',
                 'build-by': 'qfys521'
         )

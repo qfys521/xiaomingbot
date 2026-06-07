@@ -33,7 +33,8 @@ import java.io.File;
  * @author Chuanwise
  */
 public interface XiaoMingBot extends StatusHolder<XiaoMingBot.Status> {
-    String VERSION = "4.9.20251228-all-last";
+    /** 小明版本号，从 5.0.0 起采用 SemVer 语义化版本规范 */
+    String VERSION = "5.0.0";
     String SPONSOR = "Chuanwise";
     String GITHUB = "https://github.com/codethink-cn/xiaomingbot";
     String GROUP = "1028959718";

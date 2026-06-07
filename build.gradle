@@ -3,7 +3,7 @@ subprojects {
     apply plugin: 'java-library'
 
     group 'cn.chuanwise.xiaoming'
-    version '4.9.20251228-all-last'
+    version '5.0.0'
 
     compileJava {
         sourceCompatibility = JavaVersion.VERSION_17

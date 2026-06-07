@@ -48,7 +48,8 @@ public final class CompatLayer {
             "4.8",
             "4.7",
             "4.6",
-            "3.x"
+            "3.x",
+            "5.0.0"
     ));
 
     private CompatLayer() {}
