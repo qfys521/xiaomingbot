@@ -3,9 +3,16 @@ plugins {
     id 'com.gradleup.shadow' version '9.3.0'
 }
 
+repositories {
+    mavenLocal()
+    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+}
+
 dependencies {
     api project(':core')
     implementation 'net.mamoe:mirai-core-api-jvm:2.16.0'
+    implementation 'top.mrxiaom.mirai:overflow-core:1.0.8.669-9a9b69f-SNAPSHOT'
     implementation files('../libs/WiseToolkit-4.0.1-SNAPSHOT.jar')
 }
 
