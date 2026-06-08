@@ -43,4 +43,5 @@ bin/
 .idea/
 RemoveFile.sh
 src.orig/
+qqpd-bot-java/
 .claude/
