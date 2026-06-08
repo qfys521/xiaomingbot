@@ -1,3 +1,15 @@
+plugins {
+    id 'maven-publish'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
 dependencies {
     implementation 'org.jline:jline-parent:3.20.0'
     implementation 'org.fusesource.jansi:jansi:2.4.0'
