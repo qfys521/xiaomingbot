@@ -12,7 +12,7 @@ repositories {
 dependencies {
     api project(':core')
     implementation 'net.mamoe:mirai-core-api-jvm:2.16.0'
-    implementation 'top.mrxiaom.mirai:overflow-core:1.0.8.669-9a9b69f-SNAPSHOT'
+    implementation 'top.mrxiaom.mirai:overflow-core:1.1.0'
     implementation files('../libs/WiseToolkit-4.0.1-SNAPSHOT.jar')
 }
 
